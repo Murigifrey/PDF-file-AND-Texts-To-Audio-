@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="UTF-8" />
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <style>
+      *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        height: 100vh;
+        width:100%;
+      }
+
+      #cont {
+        width: 98%;
+        height: auto;
+        margin: 30px 1%;
+        background: #FFFFFF;
+      }
+
+      #da {
+        width: 96%;
+        height: auto;
+        margin: 3px 2%;
+        background: #FFFFFF;
+        border: 3px solid #00FFF8;
+        border-radius: 6px;
+        text-align: center;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0.25);
+      }
+
+      #txt {
+        width: 90%;
+        height: auto;
+        margin: 12px 5%;
+        border: 1.9px solid #4000FF;
+        border-radius: 7px;
+        background: #F2F2F2;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0.25);
+        font-style: italic;
+        font-family: Comic Sans MS;
+      }
+
+      #dc {
+        width: 96%;
+        height: auto;
+        margin: 3px 2%;
+        background: #FFFFFF;
+        border: 1.9px solid #00FFF8;
+        border-radius: 6px;
+        text-align: center;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0.25);
+      }
+
+      #spn {
+        background: #FF8800;
+        font-family: Times New Roman;
+        text-align: center;
+      }
+      
+      #txt,#fileInput{
+      width:70%;
+      height:7vh;
+      margin:9px 15%;
+      }
+
+      button {
+        background-color: #4717f6;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        font-size:5vw;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+        margin: 10px;
+      }
+
+      button:hover {
+        background-color: #2e0ca6;
+      }
+
+      pre {
+        white-space: pre-wrap; /* Preserve white spaces, wrap text as needed */
+        word-wrap: break-word; /* Break long words to fit within the container */
+        font-size: 2vw;
+        text-align: center;
+        color: #000000;
+        font-family: Times New Roman;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cont">
+      <div id="da">
+        <span id="spn">
+          <h1 id="hh">TEXT TO VOICE</h1>
+          <hr />
+          <p>Convert your PDF notes or text to speech</p>
+        </span>
+        <input type="text" id="txt" placeholder="Paste / write your text" /><br /><br/>
+        <h3>upload file</h3>
+        <input type="file" id="fileInput" accept="application/pdf" /><br />
+        <button id="sub" onclick="smt()">Submit</button>
+
+        <div id="dc">
+          <pre id="nte"></pre>
+        </div>
+        <button id="btl">PLAY Audio</button>
+        <button id="pse">PAUSE Audio</button>
+      </div>
+    </div>
+
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=XpT7an2G"></script>
+    <script>
+      const Tdply = document.getElementById("nte");
+      const inptT = document.getElementById("txt");
+
+      function smt() {
+        Tdply.innerText = inptT.value;
+        inptT.value = "";
+      }
+
+      const BtN = document.getElementById("btl");
+      BtN.addEventListener("click", () => {
+        responsiveVoice.speak(Tdply.innerText, "UK English Male", { volume: 1 });
+      });
+
+      // PDF file reading and text extraction
+      const fileInput = document.getElementById("fileInput");
+
+      fileInput.addEventListener("change", function (event) {
+        const file = event.target.files[0];
+        if (file && file.type === "application/pdf") {
+          const fileReader = new FileReader();
+          fileReader.onload = function () {
+            const typedArray = new Uint8Array(this.result);
+            pdfjsLib.getDocument(typedArray).promise.then(function (pdf) {
+              let totalText = "";
+              const pages = [];
+
+              for (let i = 1; i <= pdf.numPages; i++) {
+                pages.push(
+                  pdf.getPage(i).then(function (page) {
+                    return page.getTextContent().then(function (textContent) {
+                      const text = textContent.items.map((item) => item.str).join(" ");
+                      totalText += text + "\n";
+                    });
+                  })
+                );
+              }
+
+              Promise.all(pages).then(function () {
+                Tdply.innerText = totalText;
+              });
+            });
+          };
+
+          fileReader.readAsArrayBuffer(file);
+        } else {
+          alert("Please upload a valid PDF file.");
+        }
+      });
+      
+      const PSE= document.getElementById("pse");
+      PSE.addEventListener("click", () => {
+      	responsiveVoice.paue(Tdply)
+      })
+    </script>
+  </body>
+</html>
